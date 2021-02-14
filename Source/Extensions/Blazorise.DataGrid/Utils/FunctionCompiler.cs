@@ -24,8 +24,33 @@ namespace Blazorise.DataGrid.Utils
                 throw new ArgumentException( $"{nameof( fieldName )} is not specified." );
 
             var parts = fieldName.Split( new char[] { '.' }, 2 );
+            
+            var index = "";
+            if ( parts[0].EndsWith( ']' ) )
+            {
+                index = parts[0].Substring( parts[0].IndexOf( "[" ) );
+                index = index.Replace( "[", "" );
+                index = index.Replace( "]", "" );
+                parts[0] = parts[0].Substring( 0, parts[0].IndexOf( "[" ) );
+            }
 
             Expression field = Expression.PropertyOrField( item, parts[0] );
+            
+            //check for array
+            if ( !String.IsNullOrWhiteSpace( index ) )
+            {
+                int arrayIndex;
+                if ( int.TryParse( index, out arrayIndex ) )
+                {
+                    field = Expression.ArrayAccess( field, Expression.Constant( int.Parse( index ) ) );
+                }
+                else
+                {
+                    //TODO: Make cast dynamic
+                    field = Expression.Property( field, "Item", Expression.Constant( Guid.Parse(index) ) );
+                }
+                
+            }
 
             if ( parts.Length > 1 )
                 field = GetSafeField( field, parts[1] );
@@ -65,8 +90,32 @@ namespace Blazorise.DataGrid.Utils
                 throw new ArgumentException( $"{nameof( fieldName )} is not specified." );
 
             var parts = fieldName.Split( new char[] { '.' }, 2 );
+            
+            var index = "";
+            if ( parts[0].EndsWith( ']' ) )
+            {
+                index = parts[0].Substring( parts[0].IndexOf( "[" ) );
+                index = index.Replace( "[", "" );
+                index = index.Replace( "]", "" );
+                parts[0] = parts[0].Substring( 0, parts[0].IndexOf( "[" ) );
+            }
 
             Expression subProperty = Expression.PropertyOrField( item, parts[0] );
+            
+            //check for array
+            if ( !String.IsNullOrWhiteSpace( index ) )
+            {
+                int arrayIndex;
+                if ( int.TryParse( index, out arrayIndex ) )
+                {
+                    subProperty = Expression.ArrayAccess( subProperty, Expression.Constant( int.Parse( index ) ) );
+                }
+                else
+                {
+                    //TODO: Make cast dynamic
+                    subProperty = Expression.Property( subProperty, "Item", Expression.Constant( Guid.Parse(index) ) );
+                }
+            }
 
             if ( parts.Length > 1 )
                 subProperty = GetField( subProperty, parts[1] );
